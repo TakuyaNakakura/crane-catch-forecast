@@ -1,0 +1,15 @@
+venv
+data
+*.pyc
+__pycache__
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.egg-info
+*.egg
+*.log
+*.csv
+*.json
+*.png
+*.jpg
