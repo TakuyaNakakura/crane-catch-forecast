@@ -13,3 +13,4 @@ __pycache__
 *.json
 *.png
 *.jpg
+catboost_info

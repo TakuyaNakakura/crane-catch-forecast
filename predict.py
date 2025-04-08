@@ -337,8 +337,40 @@ def main():
 
     # 予測結果と実際の値の差（誤差）を計算し、CSVファイルに保存
     df_test["Predicted IOQ"] = y_pred  # IOQの予測値
-    df_test["IOQ Error"] = df_test["Predicted IOQ"] - df_test["IOQ"]  # IOQの誤差
-    df_test["Absolute IOQ Error"] = df_test["IOQ Error"].abs()  # IOQの絶対誤差
+
+    # 要求された追加の列を計算
+    df_test["Predicted IOQ Packages"] = df_test["Predicted IOQ"] / df_test["入数"]
+    df_test["Absolute IOQ Error"] = (df_test["Predicted IOQ"] - df_test["IOQ"]).abs()
+
+    # IOQケース数（実際のIOQを入数で割った値）とPredicted IOQ Packagesの絶対誤差
+    df_test["Absolute IOQ Packages Error"] = (
+        df_test["IOQ"] / df_test["入数"] - df_test["Predicted IOQ Packages"]
+    ).abs()
+
+    # Adjusted Predicted IOQ Packagesの計算
+    def adjust_packages(value):
+        if value >= 1.0:
+            # 1以上なら小数点第0位（整数部分）に切り捨て
+            return np.floor(value)
+        elif value >= 0.8:
+            # 0.8以上1未満なら1
+            return 1.0
+        elif value >= 0.4:
+            # 0.4以上0.8未満なら0.5
+            return 0.5
+        else:
+            # 0.4未満なら0
+            return 0.0
+
+    df_test["Adjusted Predicted IOQ Packages"] = df_test[
+        "Predicted IOQ Packages"
+    ].apply(adjust_packages)
+
+    # Adjusted Absolute IOQ Errorの計算（IOQとAdjusted Predicted IOQ Packagesの絶対誤差）
+    # IOQを入数で割って実際のパッケージ数に変換し、調整後の予測パッケージ数との絶対誤差を計算
+    df_test["Adjusted Absolute IOQ Packages Error"] = (
+        df_test["IOQ"] / df_test["入数"] - df_test["Adjusted Predicted IOQ Packages"]
+    ).abs()
 
     # 結果をCSVに保存（BOMありUTF-8で日本語を正しく保存）
     df_test.to_csv("result.csv", index=False, encoding="utf-8-sig")
